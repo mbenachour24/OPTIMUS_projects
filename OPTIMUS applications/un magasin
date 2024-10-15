@@ -1,0 +1,63 @@
+import time
+
+class Store:
+    def __init__(self, initial_stock, replenishment_rate):
+        self.stock = initial_stock
+        self.replenishment_rate = replenishment_rate
+        self.sales = 0
+        self.revenue = 0
+        self.spendings = 0
+
+    def sell_product(self, price):
+        if self.stock > 0:
+            self.stock -= 1
+            self.sales += 1
+            self.revenue += price
+            print(f"Product sold! Current stock: {self.stock}")
+        else:
+            print("Out of stock! Cannot sell.")
+
+    def check_stock(self):
+        if self.stock < 5:  # Threshold for low stock
+            print("Stock is low, initiating replenishment...")
+            self.replenish_stock()
+        else:
+            print(f"Stock level is sufficient: {self.stock}")
+
+    def replenish_stock(self):
+        self.stock += self.replenishment_rate
+        self.spendings += self.replenishment_rate * 2  # Cost of replenishing
+        print(f"Replenished stock by {self.replenishment_rate}. Current stock: {self.stock}")
+
+    def report(self):
+        print(f"Sales: {self.sales}, Revenue: {self.revenue}, Spendings: {self.spendings}")
+        balance = self.revenue - self.spendings
+        print(f"Current balance: {balance}")
+        return balance
+
+# Orchestration class to manage the time and operations
+class StoreManager:
+    def __init__(self, store, cycles):
+        self.store = store
+        self.cycles = cycles
+
+    def run_simulation(self):
+        for day in range(self.cycles):
+            print(f"\n--- Day {day + 1} ---")
+            # Simulate some sales
+            for _ in range(3):  # Assume 3 sales per day
+                self.store.sell_product(20)
+            
+            # Check stock and replenish if needed
+            self.store.check_stock()
+            
+            # Report at the end of the day
+            self.store.report()
+            
+            # Simulate the passage of time (e.g., 1 second = 1 day)
+            time.sleep(1)
+
+# Example use
+store = Store(initial_stock=10, replenishment_rate=5)
+manager = StoreManager(store, cycles=10)
+manager.run_simulation()
