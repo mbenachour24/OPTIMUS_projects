@@ -7,43 +7,8 @@ import random
 import time
 import logging
 
-# Configuration globale du logger
-def configure_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    # Supprimer tous les handlers existants pour éviter la duplication
-    if logger.hasHandlers():
-        logger.handlers.clear()
-
-    # Handler pour le fichier
-    file_handler = logging.FileHandler('journalofficiel.log', 'a')
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter('%(message)s')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
-
-    # Handler pour le terminal
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = logging.Formatter('%(message)s')
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
-
-    logger.info("Logger configuration complete without duplication.")
-
-# Appeler la configuration du logger
-configure_logger()
-
-# Ajout d'une configuration distincte pour enregistrer dans un autre fichier
-file_specific_handler = logging.FileHandler('OFFICIALJOURNAL.log', 'a')
-file_specific_handler.setLevel(logging.DEBUG)
-file_specific_formatter = logging.Formatter('%(message)s')
-file_specific_handler.setFormatter(file_specific_formatter)
-
-# Ajout du handler spécifique
-logger = logging.getLogger()
-logger.addHandler(file_specific_handler)
+# Setup enhanced logging
+logging.basicConfig(level=logging.DEBUG, filename='optimuslatest6.log', filemode='a', format='%(message)s')
 
 # Constants
 COMPLEXITY_MIN = 1
@@ -60,36 +25,44 @@ class Norm:
         self.valid = valid
         self.complexity = complexity
         self.history = []
-        logging.info(f"Norm {self.id}: Initialized with complexity {complexity} and validity {valid}")
+        self.log_event(f"Initialized with complexity {complexity} and validity {valid}")
 
     def update_complexity(self, adjustment):
         old_complexity = self.complexity
         self.complexity = max(COMPLEXITY_MIN, min(COMPLEXITY_MAX, self.complexity + adjustment))
-        logging.info(f"Norm {self.id}: Updated complexity from {old_complexity} to {self.complexity}")
+        self.log_event(f"Updated complexity from {old_complexity} to {self.complexity}")
         self.history.append(('complexity', self.complexity, time.time()))
 
     def invalidate(self):
         self.valid = False
-        logging.info(f"Norm {self.id}: Invalidated")
+        self.log_event("Invalidated")
         self.history.append(('valid', self.valid, time.time()))
 
     def validate(self):
         self.valid = True
-        logging.info(f"Norm {self.id}: Validated")
+        self.log_event("Validated")
         self.history.append(('valid', self.valid, time.time()))
 
     def get_history(self):
-        logging.info(f"Norm {self.id}: Getting history")
+        self.log_event("Getting history")
         return self.history
+
+    def log_event(self, message):
+        logging.info(f"Norm {self.id}: {message}")
+        print(f"Norm {self.id}: {message}")
 
     def __str__(self):
         return f"Norm(id={self.id}, text={self.text}, valid={self.valid}, complexity={self.complexity})"
 
 class Law(Norm):
-    pass
+    def log_event(self, message):
+        logging.info(f"Law {self.id}: {message}")
+        print(f"Law {self.id}: {message}")
 
 class Regulation(Norm):
-    pass
+    def log_event(self, message):
+        logging.info(f"Regulation {self.id}: {message}")
+        print(f"Regulation {self.id}: {message}")
 
 class Case:
     def __init__(self, case_id, text, norm_id, constitutional, complexity):
@@ -106,24 +79,23 @@ class Case:
             "cassation": 0  # Track the number of cassations
         }
         self.final_outcome = None
-        logging.info(f"Case {self.id}: A new case is brought to the Courts")
-        self.cassation_count = 0  # New field to track the number of cassations
+        self.log_event("A new case is brought to the Courts")
 
     def apply_precedent(self, precedent):
         self.constitutional = precedent
-        logging.info(f"Case {self.id}: Applied precedent, reaffirmed validity status of norm: {self.constitutional}")
+        self.log_event(f"Applied precedent, reaffirmed validity status of norm: {self.constitutional}")
         self.history.append(('constitutional', self.constitutional, time.time()))
 
     def update_complexity(self, adjustment):
         old_complexity = self.complexity
         self.complexity = max(COMPLEXITY_MIN, min(COMPLEXITY_MAX, self.complexity + adjustment))
-        logging.info(f"Case {self.id}: Updated complexity from {old_complexity} to {self.complexity}")
+        self.log_event(f"Updated complexity from {old_complexity} to {self.complexity}")
         self.history.append(('complexity', self.complexity, time.time()))
 
     def process_in_first_instance(self):
         if not self.status["first_instance"]:
             self.status["first_instance"] = True
-            logging.info(f"Case {self.id}: Processing in First Instance Court")
+            self.log_event("Processing in First Instance Court")
             self.final_outcome = self.simulate_hearing()
             return self.final_outcome
         return None
@@ -131,7 +103,7 @@ class Case:
     def process_in_appeal(self):
         if not self.status["appeal"]:
             self.status["appeal"] = True
-            logging.info(f"Case {self.id}: Processing in Appeal Court")
+            self.log_event("Processing in Appeal Court")
             self.final_outcome = self.simulate_hearing()
             return self.final_outcome
         return None
@@ -139,7 +111,7 @@ class Case:
     def process_in_cassation(self):
         if self.status["cassation"] < MAX_CASSATIONS:
             self.status["cassation"] += 1
-            logging.info(f"Case {self.id}: Processing in Court of Cassation, cassation count: {self.status['cassation']}")
+            self.log_event(f"Processing in Court of Cassation, cassation count: {self.status['cassation']}")
             cassation_outcome = self.simulate_hearing()
             if cassation_outcome == "accepted":
                 self.final_outcome = "accepted"
@@ -148,24 +120,17 @@ class Case:
                 self.status["appeal"] = False  # Reset appeal status
                 return "rejected"
         return None
-        
-    def handle_cassation(case):
-        max_cassations = 3  # Define the max cassation limit
-        if case.cassation_count >= max_cassations:
-            print(f"Case {case.id} reached maximum cassation limit. No further cassations allowed.")
-            return "rejected"  # Return rejection due to max cassations reached
-        else:
-            case.cassation_count += 1  # Increment cassation count
-            # Process the cassation as usual
-            result = process_cassation(case)
-            return result
 
     def simulate_hearing(self):
         return random.choice(["accepted", "rejected"])
 
     def get_history(self):
-        logging.info(f"Case {self.id}: Getting history")
+        self.log_event("Getting history")
         return self.history
+
+    def log_event(self, message):
+        logging.info(f"Case {self.id}: {message}")
+        print(f"Case {self.id}: {message}")
 
     def __str__(self):
         return f"Case(id={self.id}, text={self.text}, norm_id={self.norm_id}, constitutional={self.constitutional}, complexity={self.complexity})"
@@ -173,21 +138,25 @@ class Case:
 class Court:
     def __init__(self, court_name):
         self.court_name = court_name
-        logging.info(f"{self.court_name} Court: Initialized")
+        self.log_event(f"Initialized {court_name} court")
 
     def file_case(self, case):
-        logging.info(f"{self.court_name} Court: Case {case.id} filed")
-        logging.info(f"Case {case.id}: Filed in {self.court_name} court")
+        self.log_event(f"Case {case.id} filed in {self.court_name} court")
+        case.log_event(f"Filed in {self.court_name} court")
 
     def conduct_hearing(self, case):
-        logging.info(f"{self.court_name} Court: Conducted hearing for case {case.id}")
-        logging.info(f"Case {case.id}: Hearing conducted in {self.court_name} court")
+        self.log_event(f"Conducted hearing for case {case.id} in {self.court_name} court")
+        case.log_event(f"Hearing conducted in {self.court_name} court")
 
     def render_judgment(self, case):
         judgment = random.choice(["accepted", "rejected"])
-        logging.info(f"{self.court_name} Court: Rendered judgment for case {case.id}: {judgment}")
-        logging.info(f"Case {case.id}: Judgment rendered in {self.court_name} court: {judgment}")
+        self.log_event(f"Rendered judgment for case {case.id} in {self.court_name} court: {judgment}")
+        case.log_event(f"Judgment rendered in {self.court_name} court: {judgment}")
         return judgment
+
+    def log_event(self, message):
+        logging.info(f"{self.court_name} Court: {message}")
+        print(f"{self.court_name} Court: {message}")
 
 class PoliticalSystem:
     def __init__(self):
@@ -205,7 +174,7 @@ class PoliticalSystem:
             self.norm_pool.append(new_norm)
             self.norm_counter += 1
             self.norm_ids.add(new_norm.id)
-            logging.info(f"{self.get_body_name()}: Generated new {self.get_norm_type()}")
+            new_norm.log_event(f"{self.get_body_name()} GENERATED NEW {self.get_norm_type()}")
             if isinstance(new_norm, Law):
                 self.judicial_system.control_norm_constitutionality(new_norm, "CONTRÔLE OBLIGATOIRE A PRIORI")
 
@@ -224,7 +193,7 @@ class PoliticalSystem:
                     if isinstance(new_norm, Law):
                         self.judicial_system.control_norm_constitutionality(new_norm, "CONTRÔLE DE CONSTITUTIONNALITÉ OBLIGATOIRE A PRIORI")
                     new_norms.append(new_norm)
-                    logging.info(f"{self.get_body_name()}: Created new {self.get_norm_type()} by political decision")
+                    new_norm.log_event("Created by political decision")
             return new_norms
         return []
 
@@ -235,26 +204,26 @@ class PoliticalSystem:
         expectations = [norm.text for norm in self.norm_pool[-3:]]
         if citizen_pressure > 3:
             expectations.append("Prioritize Norm Enforcement")
-        logging.info(f"{self.get_body_name()}: Expectations sent based on citizen pressure: {citizen_pressure}")
+        self.log_event(f"Expectations sent based on citizen pressure: {citizen_pressure}")
         return expectations
 
     def receive_stabilization(self, stabilized_norms):
         for norm in stabilized_norms:
-            logging.info(f"{self.get_body_name()}: Norm {norm.id} stabilized")
-        logging.info(f"{self.get_body_name()}: The norms are being applied: stabilization")
+            norm.log_event("Stabilized")
+        self.log_event("The norms are being applied : stabilization")
 
     def make_regulations(self, citizen_pressure):
         raise NotImplementedError("Must be implemented by subclasses")
 
     def perform_actions(self):
         actions = [norm.text for norm in self.norm_pool[-3:]]
-        logging.info(f"{self.get_body_name()}: Performed actions: {actions}")
+        self.log_event(f"Performed actions: {actions}")
         return actions
 
     def random_event(self):
         events = ["Economic Boom", "Economic Crisis", "Social Movement", "Natural Disaster", "nek mochta t3awej", "mostfa", "elections", "covid-19"]
         event = random.choice(events)
-        logging.info(f"{self.get_body_name()}: Random event occurred: {event}")
+        self.log_event(f"Random event occurred: {event}")
         return event
 
     def reform_norm(self, norm_id):
@@ -263,9 +232,13 @@ class PoliticalSystem:
                 new_complexity = random.randint(COMPLEXITY_MIN, COMPLEXITY_MAX)
                 norm.complexity = new_complexity
                 norm.valid = random.choice([True, False])
-                logging.info(f"{self.get_body_name()}: Norm {norm.id} reformed with new complexity {new_complexity} and validity {norm.valid}")
+                norm.log_event(f"Reformed with new complexity {new_complexity} and validity {norm.valid}")
                 self.judicial_system.control_norm_constitutionality(norm)
                 break
+
+    def log_event(self, message):
+        logging.info(f"PoliticalSystem: {message}")
+        print(f"PoliticalSystem: {message}")
 
     def get_body_name(self):
         raise NotImplementedError("Must be implemented by subclasses")
@@ -295,7 +268,7 @@ class Government(PoliticalSystem):
     def __init__(self, prime_minister=""):
         super().__init__()
         self.prime_minister = prime_minister
-        logging.info(f"GOVERNMENT: Initialized under Prime Minister {self.prime_minister}")
+        self.log_event(f"Government initialized under Prime Minister {self.prime_minister}")
 
     def get_body_name(self):
         return "GOVERNMENT"
@@ -329,7 +302,7 @@ class Government(PoliticalSystem):
             regulations.extend([regulation_a, regulation_b])
             self.regulation_counter += 2
             self.regulation_pool.extend([regulation_a, regulation_b])
-            logging.info(f"GOVERNMENT: Made regulations based on citizen pressure: {[regulation_a.text, regulation_b.text]}")
+            self.log_event(f"Made regulations based on citizen pressure: {[regulation_a.text, regulation_b.text]}")
         return regulations
 
     def get_norm_type(self):
@@ -340,37 +313,27 @@ class President(PoliticalSystem):
         super().__init__()
         self.name = name
         self.iteration_count = 0
-        logging.info(f"PRESIDENT: President {self.name} inaugurated")
-
-    def create_regulation_to_veto_law(self, law):
-        regulation = Regulation(
-            norm_id=self.regulation_counter,
-            text=f"Regulation {self.regulation_counter} to veto Law {law.id}",
-            valid=True,
-            complexity=random.randint(COMPLEXITY_MIN, COMPLEXITY_MAX)
-        )
-        self.regulation_counter += 1
-        return regulation
+        self.log_event(f"President {self.name} inaugurated")
 
     def attempt_veto(self, laws):
         self.iteration_count += 1
         if self.iteration_count % 15 == 0 and laws:
             law_to_veto = random.choice(laws)
-            veto_regulation = self.create_regulation_to_veto_law(law_to_veto)
-            logging.info(f"PRESIDENT: Vetoed law {law_to_veto.id} with regulation {veto_regulation.text}")
-            return veto_regulation, law_to_veto
-        return None, None
-    
+            law_to_veto.invalidate()
+            self.log_event(f"Vetoed law {law_to_veto.id}: {law_to_veto.text}")
+            return law_to_veto
+        return None
+
     def dissolve_assembly(self, parliament):
         parliament.dissolve()
-        logging.info("PRESIDENT: Dissolved the National Assembly")
+        self.log_event("Dissolved the National Assembly")
 
     def request_referendum(self, law):
-        logging.info(f"PRESIDENT: Requested a referendum on {law.text}")
+        self.log_event(f"Requested a referendum on {law.text}")
 
     def appoint_prime_minister(self, government, new_pm_name):
         government.prime_minister = new_pm_name
-        logging.info(f"PRESIDENT: Appointed {new_pm_name} as Prime Minister")
+        self.log_event(f"Appointed {new_pm_name} as Prime Minister")
 
     def create_norm(self):
         return None  # The President does not directly create norms
@@ -388,7 +351,7 @@ class PrimeMinister(Government):
     def __init__(self, name):
         super().__init__(prime_minister=name)
         self.name = name
-        logging.info(f"PRIME MINISTER: Prime Minister {self.name} appointed")
+        self.log_event(f"Prime Minister {self.name} appointed")
 
     def get_body_name(self):
         return "PRIME MINISTER"
@@ -426,10 +389,10 @@ class JudicialSystem:
             is_constitutional = norm.valid
             self.norms_constitutionality[norm.id] = is_constitutional
 
-        logging.info(f"JudicialSystem: {check_type} for norm {norm.id}: {'constitutional' if is_constitutional else 'unconstitutional'}")
+        norm.log_event(f"{check_type}: {'constitutional' if is_constitutional else 'unconstitutional'}")
         if not is_constitutional:
             self.remove_norm(norm)
-            logging.info(f"Norm {norm.id}: Abrogated and canceled due to unconstitutionality")
+            norm.log_event("Abrogated and canceled due to unconstitutionality")
         return is_constitutional
 
     def remove_norm(self, norm):
@@ -440,7 +403,7 @@ class JudicialSystem:
 
     def control_regulation_legality(self, regulation):
         is_legal = random.choice([True, False])
-        logging.info(f"JudicialSystem: Legality check for regulation {regulation.id}: {'legal' if is_legal else 'illegal'}")
+        regulation.log_event(f"Legality check: {'legal' if is_legal else 'illegal'}")
         if not is_legal:
             law_id = int(regulation.text.split("Law ")[-1])
             law_to_check = next((law for law in self.parliament.norm_pool if law.id == law_id), None)
@@ -448,15 +411,15 @@ class JudicialSystem:
                 self.control_norm_constitutionality(law_to_check)
         return is_legal
 
-    def inspect_veto_constitutionality(self, regulation, law):
-        is_legal = self.control_regulation_legality(regulation)
-        if is_legal:
-            logging.info(f"JudicialSystem: Veto regulation for law {law.id} deemed constitutional")
-            self.remove_norm(law)  # Invalidate the law due to veto
-            logging.info(f"Law {law.id}: Invalidate due to presidential veto by regulation {regulation.id}")
+    def inspect_veto_legality(self, law):
+        is_legal = random.choice([True, False])
+        law.log_event(f"Veto legality check: {'legal' if is_legal else 'illegal'}")
+        if not is_legal:
+            self.remove_norm(law)
+            law.log_event("Veto deemed illegal and law remains invalidated")
         else:
-            logging.info(f"JudicialSystem: Veto regulation for law {law.id} deemed unconstitutional")
-        
+            self.control_norm_constitutionality(law, "CONTRÔLE DE CONSTITUTIONNALITÉ POST-VETO")
+
     def generate_case(self):
         if self.parliament.norm_pool or self.government.norm_pool:
             norm = random.choice(self.parliament.norm_pool + self.government.norm_pool)
@@ -471,7 +434,8 @@ class JudicialSystem:
                 self.case_pool.append(new_case)
                 self.case_ids.add(self.case_counter)
                 self.case_counter += 1
-                logging.info(f"JudicialSystem: Generated new case: {new_case}")
+                logging.info(f"Generated new case: {new_case}")
+                print(f"Generated new case: {new_case}")
 
     def control_political_actions(self, political_actions):
         for action in political_actions:
@@ -487,7 +451,7 @@ class JudicialSystem:
                 self.parliament.norm_ids.add(new_norm.id)
                 is_constitutional = self.control_norm_constitutionality(new_norm)
                 action_result = "annulled due to unconstitutionality" if not is_constitutional else "deemed constitutional"
-                logging.info(f"JudicialSystem: Political act '{action}' {action_result}")
+                self.log_event(f"Political act '{action}' {action_result}")
 
     def process_cases(self):
         for case in self.case_pool[:]:
@@ -520,49 +484,49 @@ class JudicialSystem:
                                 break
 
                     if case.cassation_count == MAX_CASSATIONS and case.final_outcome == "rejected":
-                        logging.info(f"JudicialSystem: Case {case.id} rejected after too many cassations")
+                        self.log_event(f"Case {case.id} rejected after too many cassations")
 
             self.apply_precedent(case)
             self.set_precedent(case)
-            logging.info(f"Case {case.id}: Processed with outcome: {case.final_outcome}")
+            case.log_event(f"Processed with outcome: {case.final_outcome}")
             self.case_pool.remove(case)
 
     def set_precedent(self, case):
         self.precedents[case.norm_id] = case.final_outcome
-        logging.info(f"JudicialSystem: Set precedent for norm {case.norm_id}: {case.final_outcome}")
+        self.log_event(f"Set precedent for norm {case.norm_id}: {case.final_outcome}")
 
     def apply_precedent(self, case):
         if case.norm_id in self.precedents:
             case.apply_precedent(self.precedents[case.norm_id])
-            logging.info(f"JudicialSystem: Applied precedent to case {case.id}: {case.final_outcome}")
+            self.log_event(f"Applied precedent to case {case.id}: {case.final_outcome}")
 
     def address_expectations(self, expectations, citizen_pressure):
         self.caseload += citizen_pressure
         for expectation in expectations:
             if expectation in [norm.text for norm in self.parliament.norm_pool + self.government.norm_pool]:
-                logging.info(f"JudicialSystem: Applying {expectation} to relevant cases")
+                self.log_event(f"Applying {expectation} to relevant cases")
 
     async def produce_judicial_decisions(self, iteration):
         if self.caseload > 0 and self.valid_rules:
             decisions_made = min(self.caseload, 5)
             self.judicial_decisions += decisions_made
             self.caseload -= decisions_made
-            logging.info(f"JudicialSystem: Produced {decisions_made} judicial decisions during iteration {iteration}. Remaining caseload: {self.caseload}")
+            self.log_event(f"Produced {decisions_made} judicial decisions during iteration {iteration}. Remaining caseload: {self.caseload}")
         else:
-            logging.info("JudicialSystem: No decisions made due to lack of cases or valid rules")
-        await asyncio.sleep(0.1)
+            self.log_event("No decisions made due to lack of cases or valid rules")
+        await asyncio.sleep(1)
 
     def question_prioritaire_de_constitutionnalite(self, citizen_pressure):
         if citizen_pressure > 7:
-            logging.info("JudicialSystem: Triggered 'Question Prioritaire de Constitutionnalite' due to high citizen pressure")
+            self.log_event("Triggered 'Question Prioritaire de Constitutionnalite' due to high citizen pressure")
 
     def stabilize_norms(self, norms):
         for norm in norms:
-            logging.info(f"Norm {norm.id}: Reinforced through consistent application")
+            norm.log_event("Reinforced through consistent application")
 
     def apply_decisions(self, decisions):
         for decision in decisions:
-            logging.info(f"JudicialSystem: Applying political decision '{decision.text}'")
+            self.log_event(f"Applying political decision '{decision.text}'")
 
     def is_legal(self):
         return bool(self.valid_rules)
@@ -570,27 +534,31 @@ class JudicialSystem:
     def receive_rules(self, rules):
         self.valid_rules.extend(rules)
         for rule in rules:
-            logging.info(f"Law {rule} est entrée en vigueur")
+            self.log_event(f"Law {rule} est entrée en vigueur")
 
     def calculate_backlog(self):
         backlog_length = len(self.case_pool)
-        logging.info(f"JudicialSystem: Backlog length: {backlog_length}")
+        self.log_event(f"Backlog length: {backlog_length}")
         return self.caseload
+
+    def log_event(self, message):
+        logging.info(f"JudicialSystem: {message}")
+        print(f"JudicialSystem: {message}")
 
 class FirstInstance(Court):
     def __init__(self, court_name):
         super().__init__(court_name)
-        logging.info(f"FirstInstance Court: Initialized {court_name} court")
+        self.log_event(f"Initialized {court_name} court")
 
 class Appeal(Court):
     def __init__(self, court_name):
         super().__init__(court_name)
-        logging.info(f"Appeal Court: Initialized {court_name} court")
+        self.log_event(f"Initialized {court_name} court")
 
 class Cassation(Court):
     def __init__(self, court_name):
         super().__init__(court_name)
-        logging.info(f"Cassation Court: Initialized {court_name} court")
+        self.log_event(f"Initialized {court_name} court")
 
 class Society:
     norms = {}
@@ -618,9 +586,9 @@ class Society:
                 is_constitutional = self.judicial_system.control_norm_constitutionality(norm)
                 Society.norms[norm.id] = {'constitutional': is_constitutional, 'last_checked_iteration': current_iteration}
             else:
-                logging.info(f"Norm {norm.id}: Already checked in this iteration")
+                norm.log_event("Already checked in this iteration")
         except Exception as e:
-            logging.info(f"Norm {norm.id}: Error checking constitutionality: {str(e)}")
+            norm.log_event(f"Error checking constitutionality: {str(e)}")
 
     def check_legality(self, regulation, current_iteration):
         try:
@@ -628,14 +596,14 @@ class Society:
                 is_legal = self.judicial_system.control_regulation_legality(regulation)
                 Society.regulations[regulation.id] = {'legal': is_legal, 'last_checked_iteration': current_iteration}
             else:
-                logging.info(f"Regulation {regulation.id}: Already checked in this iteration")
+                regulation.log_event("Already checked in this iteration")
         except Exception as e:
-            logging.info(f"Regulation {regulation.id}: Error checking legality: {str(e)}")
+            regulation.log_event(f"Error checking legality: {str(e)}")
 
     async def simulate(self):
         while self.iteration < SIMULATION_DAYS:
             self.iteration += 1
-            logging.info(f"\n\n--- DAY {self.iteration} ---\n")
+            self.log_event(f"\n\n--- DAY {self.iteration} ---\n")
 
             citizen_pressure = random.randint(CITIZEN_PRESSURE_MIN, CITIZEN_PRESSURE_MAX)
             event = self.parliament.random_event()
@@ -645,9 +613,8 @@ class Society:
             self.government.generate_norms()
 
             vetoed_law = self.president.attempt_veto(self.parliament.norm_pool)
-            if vetoed_law[0] and vetoed_law[1]:  # Check if both regulation and law exist
-                self.judicial_system.inspect_veto_constitutionality(vetoed_law[0], vetoed_law[1])
-
+            if vetoed_law:
+                self.judicial_system.inspect_veto_legality(vetoed_law)
 
             self.judicial_system.generate_case()
             self.judicial_system.process_cases()
@@ -703,8 +670,8 @@ class Society:
         normative_inflation = self.parliament.norm_counter + self.government.norm_counter
         caseload = self.judicial_system.caseload
         temporal_gap = normative_inflation - caseload
-        logging.info(f"Society: Normative Inflation: {normative_inflation}, Caseload: {caseload}, Temporal Gap: {temporal_gap}")
-        logging.info(f"Society: Processing up to 5 cases per day, total processed: {self.judicial_system.judicial_decisions}")
+        self.log_event(f"Normative Inflation: {normative_inflation}, Caseload: {caseload}, Temporal Gap: {temporal_gap}")
+        self.log_event(f"Processing up to 5 cases per day, total processed: {self.judicial_system.judicial_decisions}")
 
     async def finalize_simulation(self):
         self.parliament.generate_norms()
@@ -726,9 +693,9 @@ class Society:
         pearson_caseload_temporal_gap = np.corrcoef(caseload_array, temporal_gap_array)[0, 1]
         pearson_normative_inflation_temporal_gap = np.corrcoef(normative_inflation_array, temporal_gap_array)[0, 1]
 
-        logging.info(f'Society: Pearson correlation between Caseload and Normative Inflation: {pearson_caseload_normative_inflation}')
-        logging.info(f'Society: Pearson correlation between Caseload and Temporal Gap: {pearson_caseload_temporal_gap}')
-        logging.info(f'Society: Pearson correlation between Normative Inflation and Temporal Gap: {pearson_normative_inflation_temporal_gap}')
+        self.log_event(f'Pearson correlation between Caseload and Normative Inflation: {pearson_caseload_normative_inflation}')
+        self.log_event(f'Pearson correlation between Caseload and Temporal Gap: {pearson_caseload_temporal_gap}')
+        self.log_event(f'Pearson correlation between Normative Inflation and Temporal Gap: {pearson_normative_inflation_temporal_gap}')
 
     def plot_results(self):
         plt.figure(figsize=(9, 6))
@@ -763,7 +730,11 @@ class Society:
         max_lag = 10
         test_result = grangercausalitytests(data, max_lag, verbose=True)
         for lag, test in test_result.items():
-            logging.info(f"Society: Lag {lag} - F-test: {test[0]['ssr_ftest']}, P-value: {test[0]['ssr_ftest'][1]}")
+            self.log_event(f"Lag {lag} - F-test: {test[0]['ssr_ftest']}, P-value: {test[0]['ssr_ftest'][1]}")
+
+    def log_event(self, message):
+        logging.info(f"Society: {message}")
+        print(f"Society: {message}")
 
 async def main():
     society = Society()
