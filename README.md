@@ -1,7 +1,7 @@
 Coding the State!
 
 Optimus is an attempt to capture and model the institutional logics of the Rule of Law through algorithms. This project simulates the interactions between legal and political systems within a Rule of Law-based framework. 
-It reflects the vision of the first Liberal Professors of the Vormärz era, who coined the term Rechtsstaat—a state governed by laws and not arbitrary power.
+It reflects the vision of the first Liberal Professors of the Vormärz era, who coined the term Rechtsstaat—a State governed by laws and not arbitrary power, a State that can adequately and rationally consecrate an independant justice.
 
 However, it goes beyond just the Rule of Law—it’s a universal institutional logic that applies to any institution. The same coding method is used across systems, from legal frameworks to economic models, based on four essential rules:
 
