@@ -1,4 +1,4 @@
-##Optimus: Coding the State
+## Optimus: Coding the State 
 
 Optimus is an attempt to capture and model the institutional logics of the State and the Rule of Law through algorithmic structures. This project simulates interactions between legal and political systems within a framework designed to reflect a constitutional logic—one where institutions operate independently yet interdependently, ensuring a State governed by laws and structured processes rather than arbitrary power.
 
