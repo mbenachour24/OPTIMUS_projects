@@ -39,4 +39,6 @@ Explore, expand, and contribute to the code as we continue to refine the art of 
 
 For collaborations or questions, feel free to reach out: mbenachour24@gmail.com
 
+You can also read about this on my blog : https://imwerdensein.wordpress.com/
+
 Mohamed Ben Achour
