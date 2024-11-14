@@ -23,7 +23,7 @@ Using these four rules, Optimus successfully models a range of institutional str
 - A Bakery: Representing economic processes on a micro level.
 - Plain Autopoietic Systems: Complex, theoretical social systems modeled to test self-referential and adaptive behaviors.
 
-This universal institutional logic allows Optimus to expand and adapt across various systems, illustrating how a consistent framework can be applied to both societal and economic structures.
+This institutional logic allows Optimus to expand and adapt across various systems, illustrating how a consistent framework can be applied to both societal and economic structures.
 
 ## Contributing
 
