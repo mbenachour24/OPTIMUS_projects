@@ -25,6 +25,11 @@ Using these four rules, Optimus successfully models a range of institutional str
 
 This institutional logic allows Optimus to expand and adapt across various systems, illustrating how a consistent framework can be applied to both societal and economic structures.
 
+## Installing dependancies
+
+In order to install dependancies, run
+```pip install -r requirements.txt```
+
 ## Contributing
 
 To contribute to this project:
