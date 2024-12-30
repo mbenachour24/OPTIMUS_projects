@@ -54,6 +54,8 @@ class JudicialSystem:
                 complexity=norm.complexity
             )
             self.case_pool.append(new_case)
+            self.caseload += 1  # Increment caseload for each new case generated
+            logging.info(f"JudicialSystem: Caseload incremented to {self.caseload}")
             self.case_ids.add(self.case_counter)
             self.case_counter += 1
             logging.info(f"JudicialSystem: Generated new case: {new_case}")
@@ -85,6 +87,8 @@ class JudicialSystem:
             self.set_precedent(case)
             logging.info(f"Case {case.id}: Processed with outcome: {case.final_outcome}")
             self.case_pool.remove(case)
+            self.caseload -= 1  # Decrement caseload only when case is fully processed
+            logging.info(f"JudicialSystem: Caseload decremented to {self.caseload}")
 
     def set_precedent(self, case):
         self.precedents[case.norm_id] = case.final_outcome

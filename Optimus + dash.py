@@ -2,48 +2,105 @@ import asyncio
 import numpy as np
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import grangercausalitytests
+import matplotlib
+matplotlib.use('Agg')  # Set the backend to 'Agg'
 import matplotlib.pyplot as plt
 import random
 import time
 import logging
+import networkx as nx
+import plotly.graph_objects as go
+from dash import Dash, dcc, html
+from dash.dependencies import Input, Output
+import threading
 
-# Configuration globale du logger
+# Configure global logger
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
+
 def configure_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    # Supprimer tous les handlers existants pour éviter la duplication
-    if logger.hasHandlers():
-        logger.handlers.clear()
+    if not logger.hasHandlers():
+        file_handler = logging.FileHandler('journalofficiel.log', 'a')
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter('%(message)s')
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
 
-    # Handler pour le fichier
-    file_handler = logging.FileHandler('journalofficiel2024.log', 'a')
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter('%(message)s')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_formatter = logging.Formatter('%(message)s')
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
 
-    # Handler pour le terminal
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = logging.Formatter('%(message)s')
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
+    logger.info("Logger configuration complete.")
 
-    logger.info("Logger configuration complete without duplication.")
-
-# Appeler la configuration du logger
 configure_logger()
 
-# Ajout d'une configuration distincte pour enregistrer dans un autre fichier
-file_specific_handler = logging.FileHandler('OFFICIALJOURNAL2.log', 'a')
-file_specific_handler.setLevel(logging.DEBUG)
-file_specific_formatter = logging.Formatter('%(message)s')
-file_specific_handler.setFormatter(file_specific_formatter)
+# Set up Dash app for interactive graph
+app = Dash(__name__)
+G = nx.DiGraph()
+nodes = ["Judiciary", "Legislature", "Executive", "Political System", "Society", "Norms"]
+G.add_nodes_from(nodes)
+edges = [("Judiciary", "Legislature"), ("Legislature", "Executive"),
+         ("Executive", "Political System"), ("Political System", "Society"),
+         ("Society", "Norms"), ("Norms", "Judiciary")]
+G.add_edges_from(edges)
 
-# Ajout du handler spécifique
-logger = logging.getLogger()
-logger.addHandler(file_specific_handler)
+# Layout for the graph
+pos = nx.spring_layout(G, seed=42)
+
+# Initial Dash graph figure
+def create_figure():
+    fig = go.Figure()
+    for node in G.nodes:
+        x, y = pos[node]
+        color = "yellow" if node == "Society" else "skyblue"
+        fig.add_trace(go.Scatter(
+            x=[x], y=[y], text=node,
+            mode="markers+text",
+            marker=dict(size=30, color=color),
+            textposition="bottom center"
+        ))
+    for edge in G.edges:
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        fig.add_trace(go.Scatter(
+            x=[x0, x1, None], y=[y0, y1, None],
+            mode="lines",
+            line=dict(width=2, color="gray")
+        ))
+    fig.update_layout(
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        plot_bgcolor="white"
+    )
+    return fig
+
+# Dash app layout
+app.layout = html.Div([
+    html.H1("Optimus System - Real-Time Graph"),
+    dcc.Graph(id="live-graph", figure=create_figure()),
+    dcc.Interval(id="interval-component", interval=1000, n_intervals=0)  # Updates every second
+])
+
+# Update graph callback based on simulation state
+@app.callback(
+    Output("live-graph", "figure"),
+    [Input("interval-component", "n_intervals")]
+)
+def update_graph(n):
+    # Example: Update node colors based on random simulation data
+    for node in G.nodes:
+        G.nodes[node]["color"] = "lightgreen" if random.random() > 0.5 else "lightcoral"
+    fig = create_figure()
+    return fig
+
+# Start Dash server in a separate thread
+def run_dash():
+    app.run_server(debug=False, use_reloader=False)
 
 # Constants
 COMPLEXITY_MIN = 1
@@ -346,7 +403,7 @@ class Government(PoliticalSystem):
         law.adopted_without_vote = True
         logging.info(f"GOVERNMENT: Used 49.3 to adopt Law {law.id} without vote.")
         self.judicial_system.control_norm_constitutionality(law)
-        
+
         # Check if engagement of responsibility and censure should be activated
         if self.article_49_3_count % 5 == 0:
             self.engagement_of_responsibility()
@@ -391,7 +448,7 @@ class President(PoliticalSystem):
             logging.info(f"PRESIDENT: Vetoed law {law_to_veto.id} with regulation {veto_regulation.text}")
             return veto_regulation, law_to_veto
         return None, None
-    
+
     def dissolve_assembly(self, parliament):
         """Dissolve the National Assembly and reconstitute without elections, limited to once."""
         if self.dissolution_count < 1:
@@ -746,11 +803,11 @@ class Society:
 
             expectations = self.parliament.send_expectations(citizen_pressure)
             self.judicial_system.address_expectations(expectations, citizen_pressure)
-            
+
             regulations = self.government.make_regulations(citizen_pressure)
             for regulation in regulations:
                 self.check_legality(regulation, self.iteration)
-                
+
             self.judicial_system.apply_decisions(regulations)
 
             new_rules = self.parliament.perform_actions()
@@ -768,7 +825,6 @@ class Society:
             self.print_status()
 
         await self.finalize_simulation()
-
 
     def adjust_citizen_pressure(self, event, citizen_pressure):
         adjustments = {
@@ -848,7 +904,8 @@ class Society:
 
         plt.suptitle('Caseload, Normative Inflation, and Temporal Gap Analysis')
         plt.tight_layout()
-        plt.show()
+        plt.savefig('results.png')  # Save the plot to a file
+        plt.close()  # Close the plot to free up memory
 
     def perform_granger_test(self):
         data = np.column_stack((self.normative_inflation_history, self.caseload_history))
@@ -857,10 +914,17 @@ class Society:
         for lag, test in test_result.items():
             logging.info(f"Society: Lag {lag} - F-test: {test[0]['ssr_ftest']}, P-value: {test[0]['ssr_ftest'][1]}")
 
-async def main():
-    society = Society()
-    await society.simulate()
+# Global instance for Society to be accessible by Dash callbacks
+society_instance = None
 
-asyncio.run(main())
+def run_simulation():
+    global society_instance
+    society_instance = Society()
+    asyncio.run(society_instance.simulate())
+
+# Run both simulation and Dash server concurrently
+if __name__ == "__main__":
+    threading.Thread(target=run_simulation).start()
+    threading.Thread(target=run_dash).start()
 
 

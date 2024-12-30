@@ -7,9 +7,10 @@ from political_system import Parliament, Government, President, PrimeMinister
 from judicial_system import JudicialSystem
 from logging_config import configure_logger
 from analysis import calculate_correlations, plot_results, perform_granger_test
+from visualizations import initialize_graph, update_node_sizes, update_edges, visualize_graph  # Import visualization functions
 
 # Constants
-SIMULATION_DAYS = 365
+SIMULATION_DAYS = 20
 CITIZEN_PRESSURE_MIN = 1
 CITIZEN_PRESSURE_MAX = 10
 
@@ -37,6 +38,9 @@ class Society:
         self.normative_inflation_history = []
         self.temporal_gap_history = []
         self.history = []
+
+        # Initialize the graph for visualization
+        self.G = initialize_graph()
 
     def check_constitutionality(self, norm, current_iteration):
         if norm.id not in Society.norms or Society.norms[norm.id]['last_checked_iteration'] != current_iteration:
@@ -70,7 +74,6 @@ class Society:
             # Track historical data
             self.track_histories()
             await asyncio.sleep(0.1)
-
         await self.finalize_simulation()
 
     def adjust_citizen_pressure(self, event, citizen_pressure):

@@ -5,7 +5,7 @@ import random
 import logging
 
 # Setup enhanced logging
-logging.basicConfig(level=logging.DEBUG, filename='mini_optimu2.log', filemode='a', format='%(message)s')
+logging.basicConfig(level=logging.DEBUG, filename='mini_optimu4.log', filemode='a', format='%(message)s')
 
 # Constants
 COMPLEXITY_MIN = 1

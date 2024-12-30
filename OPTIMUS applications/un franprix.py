@@ -96,7 +96,7 @@ class Franprix:
         for _ in range(iterations):
             self.afficher_stock()
             self.iterer()
-            time.sleep(0.1)  # Pause pour simuler le temps qui passe
+            time.sleep(1)  # Pause pour simuler le temps qui passe
 
 # Classe Client
 class Client:

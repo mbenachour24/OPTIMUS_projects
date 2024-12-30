@@ -1,5 +1,8 @@
 # logging_config.py
 import logging
+import matplotlib
+
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
 def configure_logger():
     logger = logging.getLogger()
@@ -10,7 +13,7 @@ def configure_logger():
         logger.handlers.clear()
 
     # File handler
-    file_handler = logging.FileHandler('optimodular.log', 'a')
+    file_handler = logging.FileHandler('optimodular8.log', 'a')
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter('%(message)s')
     file_handler.setFormatter(file_formatter)

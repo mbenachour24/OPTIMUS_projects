@@ -6,6 +6,7 @@ from statsmodels.tsa.stattools import grangercausalitytests
 
 def calculate_correlations(caseload_history, normative_inflation_history, temporal_gap_history):
     """Calculate Pearson correlations between caseload, normative inflation, and temporal gap."""
+    # Convert lists to arrays
     caseload_array = np.array(caseload_history)
     normative_inflation_array = np.array(normative_inflation_history)
     temporal_gap_array = np.array(temporal_gap_history)
@@ -15,6 +16,7 @@ def calculate_correlations(caseload_history, normative_inflation_history, tempor
     pearson_caseload_temporal_gap = np.corrcoef(caseload_array, temporal_gap_array)[0, 1]
     pearson_normative_inflation_temporal_gap = np.corrcoef(normative_inflation_array, temporal_gap_array)[0, 1]
 
+    # Log the results
     logging.info(f'Society: Pearson correlation between Caseload and Normative Inflation: {pearson_caseload_normative_inflation}')
     logging.info(f'Society: Pearson correlation between Caseload and Temporal Gap: {pearson_caseload_temporal_gap}')
     logging.info(f'Society: Pearson correlation between Normative Inflation and Temporal Gap: {pearson_normative_inflation_temporal_gap}')
@@ -53,10 +55,10 @@ def plot_results(caseload_history, normative_inflation_history, temporal_gap_his
 def perform_granger_test(normative_inflation_history, caseload_history):
     """Perform Granger causality test between normative inflation and caseload."""
     data = np.column_stack((normative_inflation_history, caseload_history))
-    max_lag = 10  # Adjust as needed for the best fit
+    max_lag = min(10, len(normative_inflation_history) - 1)  # Dynamically set max lag based on data length
     test_result = grangercausalitytests(data, max_lag, verbose=False)
 
-    # Logging Granger causality results for each lag
+    # Log Granger causality results for each lag
     for lag, result in test_result.items():
         f_test = result[0]['ssr_ftest']
         logging.info(f"Granger causality test at lag {lag}: F-test = {f_test[0]}, p-value = {f_test[1]}")
