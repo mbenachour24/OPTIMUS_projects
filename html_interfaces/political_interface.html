@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Political System Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .container {
+            display: flex;
+            margin: 20px;
+        }
+        .sidebar {
+            width: 20%;
+            background-color: #fff;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+        .main {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .notification {
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #e7f3ff;
+            border-left: 5px solid #007bff;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .notification h4 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+        .notification p {
+            margin: 0;
+            color: #555;
+        }
+        .create-norm {
+            margin-bottom: 15px;
+        }
+        .create-norm input, .create-norm button {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .create-norm button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .create-norm button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .log h4 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .log p {
+            font-size: 14px;
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Political System Dashboard
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <h3>Menu</h3>
+            <ul>
+                <li><a href="#">Create Norm</a></li>
+                <li><a href="#">Review Judicial Feedback</a></li>
+                <li><a href="#">Monitor Social Indicators</a></li>
+                <li><a href="#">Reform Existing Norms</a></li>
+            </ul>
+        </div>
+        <div class="main">
+            <div class="create-norm">
+                <h3>Create New Norm</h3>
+                <input type="text" placeholder="Enter Norm Title">
+                <button>Create</button>
+            </div>
+            <div class="notification">
+                <h4>Judicial Feedback</h4>
+                <p>Norm 142 flagged as potentially unconstitutional. Please review the judiciary's concerns.</p>
+            </div>
+            <div class="notification">
+                <h4>Social Indicator</h4>
+                <p>Citizen satisfaction dropped by 15% after Regulation 77. Consider reevaluating policy decisions.</p>
+            </div>
+            <div class="notification">
+                <h4>Judicial Update</h4>
+                <p>Court ruled Regulation 126 as legal. Implement adjustments to current legislative drafts.</p>
+            </div>
+            <div class="log">
+                <h4>Political Log</h4>
+                <p>Day 53: Created Norm 145 (Environmental Policy)</p>
+                <p>Day 54: Revised Norm 140 based on Judicial Feedback</p>
+                <p>Day 55: Launched Regulation 151 (Healthcare Reform)</p>
+                <p>Day 56: Social Movement sparked consideration for Norm 152</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
