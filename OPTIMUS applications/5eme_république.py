@@ -166,6 +166,103 @@ class Tribunal:
     def enregistrer_événement(self, message):
         logging.info(f"Tribunal {self.nom_tribunal} : {message}")
 
+class SystèmePolitique:
+    """Classe de base pour tous les systèmes politiques."""
+    def __init__(self):
+        self.compteur_normes = 0
+        self.normes = []
+
+    def créer_norme(self):
+        """Méthode abstraite à surcharger dans les sous-classes."""
+        raise NotImplementedError("Cette méthode doit être surchargée dans les sous-classes.")
+        
+class Sénat(SystèmePolitique):
+    """Représente le Sénat qui participe au vote des lois."""
+    def __init__(self):
+        super().__init__()
+
+    def voter_loi(self, loi):
+        """Voter une loi au Sénat."""
+        loi.enregistrer_événement("Votée par le Sénat")
+        return loi
+
+class Parlement(SystèmePolitique):
+    """Représente le Parlement législatif qui crée les lois."""
+    def __init__(self):
+        super().__init__()
+        self.sénat = Sénat()
+
+    def créer_norme(self):
+        """Créer une loi avec une complexité aléatoire."""
+        self.compteur_normes += 1
+        loi = Loi(
+            identifiant_norme=self.compteur_normes,
+            texte=f'Loi {self.compteur_normes}',
+            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
+        )
+        self.normes.append(loi)
+        return loi
+
+    def voter_loi(self, loi):
+        """Voter une loi à l'Assemblée nationale."""
+        loi.enregistrer_événement("Votée par l'Assemblée nationale")
+        self.sénat.voter_loi(loi)  # Vote au Sénat
+        return loi
+
+    def navette_parlementaire(self, loi):
+        """Simuler la navette parlementaire."""
+        loi.enregistrer_événement("Navette parlementaire initiée")
+        # Simuler les allers-retours entre les deux chambres
+        if random.choice([True, False]):  # Simuler un accord ou désaccord
+            loi.enregistrer_événement("Accord trouvé entre les deux chambres")
+        else:
+            loi.enregistrer_événement("Désaccord, commission mixte paritaire convoquée")
+        return loi
+
+    def proposer_révision_constitution(self, texte_révision):
+        """Proposer une révision de la Constitution."""
+        self.compteur_normes += 1
+        révision = Norme(
+            identifiant_norme=self.compteur_normes,
+            texte=f'Révision Constitutionnelle {self.compteur_normes}: {texte_révision}',
+            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
+        )
+        self.normes.append(révision)
+        révision.enregistrer_événement("Proposition de révision constitutionnelle déposée au Parlement")
+        return révision
+
+    def voter_révision(self, révision):
+        """Voter une révision constitutionnelle."""
+        révision.enregistrer_événement("Votée par le Parlement")
+        return révision
+
+class Gouvernement(SystèmePolitique):
+    """Représente le Gouvernement exécutif qui crée les règlements."""
+    def __init__(self):
+        super().__init__()
+        self.compteur_règlements = 0  # Compteur distinct pour les règlements
+
+    def créer_norme(self):
+        """Créer un règlement avec une complexité aléatoire."""
+        self.compteur_règlements += 1
+        règlement = Règlement(
+            identifiant_norme=self.compteur_règlements,
+            texte=f'Règlement {self.compteur_règlements}',
+            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
+        )
+        self.normes.append(règlement)
+        return règlement
+
+    def engager_responsabilité(self, loi):
+        """Engager la responsabilité du Gouvernement sur un texte (article 49.3)."""
+        loi.enregistrer_événement("Responsabilité du Gouvernement engagée sur la loi")
+        if random.choice([True, False]):  # Simuler une motion de censure
+            loi.enregistrer_événement("Motion de censure adoptée, Gouvernement censuré")
+            return False
+        else:
+            loi.enregistrer_événement("Motion de censure rejetée, Gouvernement maintenu")
+            return True
+
 class ConseilConstitutionnel:
     """Représente le Conseil Constitutionnel pour le contrôle des lois."""
     def __init__(self):
@@ -178,6 +275,40 @@ class ConseilConstitutionnel:
         loi.valide = est_constitutionnelle  # Mettre à jour l'état de validité
         loi.enregistrer_événement(f"Contrôle de constitutionnalité : {'constitutionnelle' if est_constitutionnelle else 'inconstitutionnelle'}")
         return est_constitutionnelle
+
+    def traiter_qpc(self, loi):
+        """Traitement d'une question prioritaire de constitutionnalité."""
+        loi.enregistrer_événement("QPC traitée par le Conseil Constitutionnel")
+        if random.choice([True, False]):  # Simuler le résultat de la QPC
+            loi.enregistrer_événement("QPC validée, loi conforme à la Constitution")
+            return True
+        else:
+            loi.enregistrer_événement("QPC invalidée, loi non conforme à la Constitution")
+            return False
+
+    def contrôler_élection(self, élection):
+        """Contrôle de la régularité d'une élection."""
+        self.enregistrer_événement(f"Contrôle de la régularité de l'élection : {élection}")
+        if random.choice([True, False]):  # Simuler le résultat du contrôle
+            self.enregistrer_événement("Élection validée")
+            return True
+        else:
+            self.enregistrer_événement("Élection invalidée")
+            return False
+
+    def contrôler_traité(self, traité):
+        """Contrôle de la conformité d'un traité avec la Constitution."""
+        self.enregistrer_événement(f"Contrôle de la conformité du traité : {traité}")
+        if random.choice([True, False]):  # Simuler le résultat du contrôle
+            self.enregistrer_événement("Traitée conforme à la Constitution")
+            return True
+        else:
+            self.enregistrer_événement("Traitée non conforme à la Constitution")
+            return False
+
+    def protéger_droits_fondamentaux(self, droit):
+        """Simuler la protection des droits fondamentaux."""
+        self.enregistrer_événement(f"Protection du droit fondamental : {droit}")
 
     def enregistrer_événement(self, message):
         logging.info(f"Conseil Constitutionnel : {message}")
@@ -227,6 +358,24 @@ class Président:
     def négocier_traité(self, traité):
         """Négocie et ratifie les traités internationaux."""
         self.enregistrer_événement(f"Traitement du traité {traité} par le Président")
+
+    def activer_pouvoirs_exceptionnels(self):
+        """Activer les pouvoirs exceptionnels selon l'article 16."""
+        self.enregistrer_événement("Pouvoirs exceptionnels activés par le Président en vertu de l'article 16")
+
+    def réunion_conseil_ministres(self, ordre_du_jour):
+        """Simuler une réunion du Conseil des ministres."""
+        self.enregistrer_événement(f"Réunion du Conseil des ministres avec l'ordre du jour : {ordre_du_jour}")
+
+    def soumettre_référendum(self, loi):
+        """Soumettre un projet de loi à référendum."""
+        loi.enregistrer_événement("Soumis à référendum par le Président")
+        if random.choice([True, False]):  # Simuler le résultat du référendum
+            loi.enregistrer_événement("Référendum adopté")
+            return True
+        else:
+            loi.enregistrer_événement("Référendum rejeté")
+            return False
 
     def enregistrer_événement(self, message):
         logging.info(f"Président : {message}")
@@ -309,70 +458,17 @@ class SystèmeJudiciaire:
     def enregistrer_événement(self, message):
         logging.info(f"Système Judiciaire : {message}")
 
-class SystèmePolitique:
-    """Classe de base pour tous les systèmes politiques."""
-    def __init__(self):
-        self.compteur_normes = 0
-        self.normes = []
+class AutoritéAdministrativeIndépendante:
+    def __init__(self, nom):
+        self.nom = nom
+        self.enregistrer_événement(f"{nom} initialisée")
 
-    def créer_norme(self):
-        """Méthode abstraite à surcharger dans les sous-classes."""
-        raise NotImplementedError("Cette méthode doit être surchargée dans les sous-classes.")
+    def réguler(self, domaine):
+        """Simuler la régulation d'un domaine spécifique."""
+        self.enregistrer_événement(f"Régulation du domaine : {domaine}")
 
-class Parlement(SystèmePolitique):
-    """Représente le Parlement législatif qui crée les lois."""
-    def __init__(self):
-        super().__init__()
-
-    def créer_norme(self):
-        """Créer une loi avec une complexité aléatoire."""
-        self.compteur_normes += 1
-        loi = Loi(
-            identifiant_norme=self.compteur_normes,
-            texte=f'Loi {self.compteur_normes}',
-            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
-        )
-        self.normes.append(loi)
-        return loi
-
-    def voter_loi(self, loi):
-        """Voter une loi."""
-        loi.enregistrer_événement("Votée par le Parlement")
-        return loi
-
-    def proposer_loi(self, texte):
-        """Proposer une nouvelle loi."""
-        self.compteur_normes += 1
-        loi = Loi(
-            identifiant_norme=self.compteur_normes,
-            texte=texte,
-            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
-        )
-        self.normes.append(loi)
-        loi.enregistrer_événement("Proposition de loi déposée au Parlement")
-        return loi
-
-class Gouvernement(SystèmePolitique):
-    """Représente le Gouvernement exécutif qui crée les règlements."""
-    def __init__(self):
-        super().__init__()
-        self.compteur_règlements = 0  # Compteur distinct pour les règlements
-
-    def créer_norme(self):
-        """Créer un règlement avec une complexité aléatoire."""
-        self.compteur_règlements += 1
-        règlement = Règlement(
-            identifiant_norme=self.compteur_règlements,
-            texte=f'Règlement {self.compteur_règlements}',
-            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
-        )
-        self.normes.append(règlement)
-        return règlement
-
-    def engager_responsabilité(self, loi):
-        """Engager la responsabilité du Gouvernement sur un texte (article 49.3)."""
-        loi.enregistrer_événement("Responsabilité du Gouvernement engagée sur la loi")
-        return loi
+    def enregistrer_événement(self, message):
+        logging.info(f"{self.nom} : {message}")
 
 class Société:
     """Classe représentant la société avec ses composantes politiques et judiciaires."""
@@ -384,6 +480,7 @@ class Société:
         self.conseil_constitutionnel = ConseilConstitutionnel()
         self.conseil_etat = ConseilÉtat()
         self.itération = 0
+        self.aae = AutoritéAdministrativeIndépendante("Autorité Administrative Indépendante")
 
     async def simuler(self):
         while self.itération < JOURS_DE_SIMULATION:
@@ -393,6 +490,9 @@ class Société:
             # Le Parlement crée une loi
             loi = self.parlement.créer_norme()
             logging.info(f"Parlement a produit : {loi.texte}")
+
+            # Navette parlementaire
+            self.parlement.navette_parlementaire(loi)
 
             # Le Gouvernement crée un règlement
             règlement = self.gouvernement.créer_norme()
