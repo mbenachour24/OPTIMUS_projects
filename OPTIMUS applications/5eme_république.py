@@ -27,7 +27,7 @@ logger.addHandler(console_handler)
 
 # Constantes
 COMPLEXITÉ_MIN = 1
-COMPLEXITÉ_MAX = 10 
+COMPLEXITÉ_MAX = 10
 JOURS_DE_SIMULATION = 100
 NOMBRE_MAX_CASSATIONS = 3
 
@@ -63,25 +63,19 @@ class Norme:
 
     def enregistrer_événement(self, message):
         logging.info(f"Norme {self.id} : {message}")
-        print(f"Norme {self.id} : {message}")
 
     def __str__(self):
         return f"Norme(id={self.id}, texte={self.texte}, valide={self.valide}, complexité={self.complexité})"
-
 
 class Loi(Norme):
     """Représente une loi créée par le Parlement."""
     def enregistrer_événement(self, message):
         logging.info(f"Loi {self.id} : {message}")
-        print(f"Loi {self.id} : {message}")
-
 
 class Règlement(Norme):
     """Représente un règlement créé par le Gouvernement."""
     def enregistrer_événement(self, message):
         logging.info(f"Règlement {self.id} : {message}")
-        print(f"Règlement {self.id} : {message}")
-
 
 class Affaire:
     """Représente une affaire judiciaire."""
@@ -145,11 +139,9 @@ class Affaire:
 
     def enregistrer_événement(self, message):
         logging.info(f"Affaire {self.id} : {message}")
-        print(f"Affaire {self.id} : {message}")
 
     def __str__(self):
         return f"Affaire(id={self.id}, texte={self.texte}, id_norme={self.id_norme}, constitutionnelle={self.constitutionnelle}, complexité={self.complexité})"
-
 
 class Tribunal:
     """Classe de base pour tous les tribunaux."""
@@ -173,8 +165,6 @@ class Tribunal:
 
     def enregistrer_événement(self, message):
         logging.info(f"Tribunal {self.nom_tribunal} : {message}")
-        print(f"Tribunal {self.nom_tribunal} : {message}")
-
 
 class ConseilConstitutionnel:
     """Représente le Conseil Constitutionnel pour le contrôle des lois."""
@@ -182,16 +172,15 @@ class ConseilConstitutionnel:
         self.nom = "Conseil Constitutionnel"
         self.enregistrer_événement("Conseil Constitutionnel initialisé")
 
-    def contrôler_constitutionnalité(self, norme):
-        """Contrôle la constitutionnalité d'une norme avant promulgation."""
+    def contrôler_constitutionnalité(self, loi):
+        """Contrôle la constitutionnalité d'une loi avant promulgation."""
         est_constitutionnelle = random.choice([True, False])  # Simuler le processus de contrôle
-        norme.enregistrer_événement(f"Contrôle de constitutionnalité : {'constitutionnelle' if est_constitutionnelle else 'inconstitutionnelle'}")
+        loi.valide = est_constitutionnelle  # Mettre à jour l'état de validité
+        loi.enregistrer_événement(f"Contrôle de constitutionnalité : {'constitutionnelle' if est_constitutionnelle else 'inconstitutionnelle'}")
         return est_constitutionnelle
 
     def enregistrer_événement(self, message):
         logging.info(f"Conseil Constitutionnel : {message}")
-        print(f"Conseil Constitutionnel : {message}")
-
 
 class ConseilÉtat:
     """Représente le Conseil d'État pour le contrôle des règlements."""
@@ -202,13 +191,12 @@ class ConseilÉtat:
     def examiner_règlement(self, règlement):
         """Examine la légalité d'un règlement."""
         est_legal = random.choice([True, False])  # Simuler le processus d'examen
+        règlement.valide = est_legal  # Mettre à jour l'état de validité
         règlement.enregistrer_événement(f"Examen de légalité : {'légal' if est_legal else 'illégal'}")
         return est_legal
 
     def enregistrer_événement(self, message):
         logging.info(f"Conseil d'État : {message}")
-        print(f"Conseil d'État : {message}")
-
 
 class Président:
     """Représente le Président de la République."""
@@ -227,10 +215,21 @@ class Président:
         """Dissoudre l'Assemblée Nationale."""
         self.enregistrer_événement("Assemblée Nationale dissoute par le Président")
 
+    def nommer_premier_ministre(self, premier_ministre):
+        """Nomme le Premier ministre."""
+        self.enregistrer_événement(f"{premier_ministre} nommé Premier ministre par le Président")
+
+    def nommer_gouvernement(self, membres_gouvernement):
+        """Nomme les membres du Gouvernement sur proposition du Premier ministre."""
+        for membre in membres_gouvernement:
+            self.enregistrer_événement(f"{membre} nommé membre du Gouvernement par le Président")
+
+    def négocier_traité(self, traité):
+        """Négocie et ratifie les traités internationaux."""
+        self.enregistrer_événement(f"Traitement du traité {traité} par le Président")
+
     def enregistrer_événement(self, message):
         logging.info(f"Président : {message}")
-        print(f"Président : {message}")
-
 
 class SystèmeJudiciaire:
     """Représente le système judiciaire et ses processus."""
@@ -255,6 +254,7 @@ class SystèmeJudiciaire:
     def abroger_norme(self, norme):
         """Supprime une norme du système."""
         norme.enregistrer_événement("Abrogée et annulée en raison de l'inconstitutionnalité")
+
     def créer_affaire(self, norme):
         """Crée une nouvelle affaire à partir d'une norme."""
         if self.compteur_affaires not in [affaire.id for affaire in self.affaires]:
@@ -268,7 +268,6 @@ class SystèmeJudiciaire:
             self.affaires.append(nouvelle_affaire)
             self.compteur_affaires += 1
             logging.info(f"Nouvelle affaire générée : {nouvelle_affaire}")
-            print(f"Nouvelle affaire générée : {nouvelle_affaire}")
             return nouvelle_affaire
         return None
 
@@ -309,8 +308,6 @@ class SystèmeJudiciaire:
 
     def enregistrer_événement(self, message):
         logging.info(f"Système Judiciaire : {message}")
-        print(f"Système Judiciaire : {message}")
-
 
 class SystèmePolitique:
     """Classe de base pour tous les systèmes politiques."""
@@ -321,7 +318,6 @@ class SystèmePolitique:
     def créer_norme(self):
         """Méthode abstraite à surcharger dans les sous-classes."""
         raise NotImplementedError("Cette méthode doit être surchargée dans les sous-classes.")
-
 
 class Parlement(SystèmePolitique):
     """Représente le Parlement législatif qui crée les lois."""
@@ -339,6 +335,22 @@ class Parlement(SystèmePolitique):
         self.normes.append(loi)
         return loi
 
+    def voter_loi(self, loi):
+        """Voter une loi."""
+        loi.enregistrer_événement("Votée par le Parlement")
+        return loi
+
+    def proposer_loi(self, texte):
+        """Proposer une nouvelle loi."""
+        self.compteur_normes += 1
+        loi = Loi(
+            identifiant_norme=self.compteur_normes,
+            texte=texte,
+            complexité=random.randint(COMPLEXITÉ_MIN, COMPLEXITÉ_MAX)
+        )
+        self.normes.append(loi)
+        loi.enregistrer_événement("Proposition de loi déposée au Parlement")
+        return loi
 
 class Gouvernement(SystèmePolitique):
     """Représente le Gouvernement exécutif qui crée les règlements."""
@@ -357,6 +369,10 @@ class Gouvernement(SystèmePolitique):
         self.normes.append(règlement)
         return règlement
 
+    def engager_responsabilité(self, loi):
+        """Engager la responsabilité du Gouvernement sur un texte (article 49.3)."""
+        loi.enregistrer_événement("Responsabilité du Gouvernement engagée sur la loi")
+        return loi
 
 class Société:
     """Classe représentant la société avec ses composantes politiques et judiciaires."""
@@ -382,10 +398,11 @@ class Société:
             règlement = self.gouvernement.créer_norme()
             logging.info(f"Gouvernement a produit : {règlement.texte}")
 
-            # Le système judiciaire vérifie la constitutionnalité et la légalité
+            # Le Conseil Constitutionnel contrôle la constitutionnalité des lois
             if self.conseil_constitutionnel.contrôler_constitutionnalité(loi):
                 self.président.promulguer_loi(loi)
 
+            # Le Conseil d'État contrôle la légalité des règlements
             if self.conseil_etat.examiner_règlement(règlement):
                 logging.info(f"Règlement {règlement.texte} validé par le Conseil d'État")
 
@@ -407,7 +424,6 @@ class Société:
             await asyncio.sleep(1)  # Simule le passage du temps
 
         logging.info("Simulation terminée.")
-
 
 async def main():
     société = Société()
