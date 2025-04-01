@@ -1,11 +1,18 @@
-#MVP VERSION OF THE RULE OF LAW
-
 import asyncio
 import random
 import logging
 
-# Setup enhanced logging
-logging.basicConfig(level=logging.DEBUG, filename='mini_optimu4.log', filemode='a', format='%(message)s')
+# Clear existing handlers to avoid duplication
+logging.getLogger().handlers = []
+
+# Setup logging to console only
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 
 # Constants
 COMPLEXITY_MIN = 1
@@ -27,7 +34,6 @@ class Norm:
     def log_event(self, message):
         log_message = f"Norm {self.id}: {message}"
         logging.info(log_message)
-        print(log_message)
 
 class Case:
     def __init__(self, case_id, text, norm):
@@ -40,7 +46,6 @@ class Case:
     def log_event(self, message):
         log_message = f"Case {self.id}: {message}"
         logging.info(log_message)
-        print(log_message)
 
 class PoliticalSystem:
     def __init__(self):
@@ -66,21 +71,18 @@ class JudicialSystem:
     def check_constitutionality(self, norm):
         log_message = f"Judicial System: Checking constitutionality of norm {norm.id} with complexity {norm.complexity}"
         logging.info(log_message)
-        print(log_message)
-        
+
         if norm.complexity > 5:
             norm.invalidate()
-        
+
         # Log message indicating constitutionality check is complete
         log_message = f"Judicial System: Norm {norm.id} has been checked for constitutionality. Valid status: {norm.valid}"
         logging.info(log_message)
-        print(log_message)
 
     def create_case(self, norm):
         if not norm.valid:
             log_message = f"Judicial System: Cannot create case based on invalid norm {norm.id}"
             logging.info(log_message)
-            print(log_message)
             return None
 
         self.case_counter += 1
@@ -103,13 +105,11 @@ class Society:
             self.iteration += 1
             log_message = f"\n\n{'='*20} START OF DAY {self.iteration} {'='*20}\n"
             logging.info(log_message)
-            print(log_message)
 
             # Political system creates a norm
             norm = self.parliament.create_norm()
             log_message = f"Political System produced: {norm.text}"
             logging.info(log_message)
-            print(log_message)
 
             # Judicial system checks constitutionality
             self.judicial_system.check_constitutionality(norm)
@@ -119,12 +119,13 @@ class Society:
             if case:
                 log_message = f"Judicial System produced: {case.text}"
                 logging.info(log_message)
-                print(log_message)
 
             log_message = f"\n{'='*20} END OF DAY {self.iteration} {'='*20}\n"
             logging.info(log_message)
-            print(log_message)
-            
+
+            logging.info(f"Society: Normative Inflation: {self.iteration}, Caseload: {len(self.judicial_system.cases)}")
+            logging.info(f"Society: Processing up to 5 cases per day, total processed: {len(self.judicial_system.cases)}\n")
+
             await asyncio.sleep(1)  # Simulate the passage of time
 
         logging.info("Simulation completed.")
