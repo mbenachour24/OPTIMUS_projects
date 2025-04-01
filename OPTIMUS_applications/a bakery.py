@@ -78,7 +78,7 @@ def main():
     bakery_system = BakeryOrchestrator()
     
     # Simulate iterations of the bakery process
-    for i in range(3):  # Simulate 3 iterations (can be extended)
+    for i in range(200):  # Simulate 3 iterations (can be extended)
         print(f"\n--- Iteration {i+1} ---")
         bakery_system.run_iteration()
         time.sleep(1)  # Simulate time passing between iterations
